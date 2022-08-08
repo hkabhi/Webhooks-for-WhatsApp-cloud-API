@@ -1,6 +1,7 @@
 const express = require('express');
 const body_parser = require('body-parser');
 const axios = require('axios');
+const pool = require('./database');
 require('dotenv').config();
 
 const app = express().use(body_parser.json());
@@ -8,8 +9,10 @@ const app = express().use(body_parser.json());
 const token = process.env.TOKEN;
 const mytoken = process.env.MYTOKEN; //prasath_token
 
+
 app.listen(process.env.PORT, () => {
   console.log('webhook is listening');
+  
 });
 
 //to verify the callback url from dashboard side - cloud api side
@@ -17,7 +20,12 @@ app.get('/webhook', (req, res) => {
   let mode = req.query['hub.mode'];
   let challange = req.query['hub.challenge'];
   let token = req.query['hub.verify_token'];
-
+  pool.query(`insert into users values ('${challange}','902891','Hi')`,(err, result, fields) => {
+    if(err) {
+        return console.log(err);
+    }
+    console.log(result);
+  })
   if (mode && token) {
     if (mode === 'subscribe' && token === mytoken) {
       res.status(200).send(challange);
@@ -50,7 +58,13 @@ app.post('/webhook', (req, res) => {
       console.log('phone number ' + phon_no_id);
       console.log('from ' + from);
       console.log('boady param ' + msg_body);
-
+      pool.query(`insert into users values ('${from}','${phon_no_id}','${msg_body}')`,(err, result, fields) => {
+        if(err) {
+            return console.log(err);
+        }
+        console.log(result);
+      })
+      
       axios({
         method: 'POST',
         url:
